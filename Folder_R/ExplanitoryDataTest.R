@@ -1,39 +1,19 @@
 # number Confirmed cases
 #### averaging the covid cases by day for eat country to combine
 aggregate(Active~Country_Region + Deaths+Recovered,subsetCovidData,sum())
-DataByDate <- data %>%
-  filter(Country_Region %in% c("Mainland China","China","United Kingdom","Ukraine",
-                               "US","Russia","Japan","Germany","France"))%>%
-  filter(date > mdy("01/01/2020") & date < mdy("09/01/2022")) %>%
-  rename(Date = date) %>%
-  ##avoid issues
-  mutate(Confirmed = ifelse(is.na(Confirmed),0,Confirmed),
-         Active = ifelse(is.na(Active),0,Active),
-         Deaths = ifelse(is.na(Deaths),0,Deaths),
-         Recovered = ifelse(is.na(Recovered),0,Recovered))%>%
-                              
-  ##Summarizing the Countries by one day
-  
-  group_by(Date) %>% 
-  summarise(Confirmed = sum(Confirmed),
-            Active = sum(Active),
-            Deaths = sum(Deaths),
-            Recovered = sum(Recovered)) %>% 
-  full_join(.,btcData) %>%filter(!is.na(Confirmed))
-
 
 ####Create daily variables and time series
 
-CovidBit <- DataByDate %>%
+#CovidBit <- DataByDate %>%
   mutate(time = Date - myd("01/20/2020"),
          month = month(Date),
          year = year(Date),
          dailyActive = if_else(Date == mdy("01/22/2022"),Active,Active - lag(Active)),
          dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
          dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths))) %>%
-  select(Date,Close,dailyActive,dailyConfirmed,dailyDeaths,time,month,year)
+#  select(Date,Close,dailyActive,dailyConfirmed,dailyDeaths,time,month,year)
 
-library(corrgram)
+
 ###### adding Incident
 CovidRate <- data %>%
   filter(date > mdy("01/01/2020") & date < mdy("09/01/2022")) %>%
@@ -53,7 +33,7 @@ CovidRate <- data %>%
             Incident_Rate = sum(Incident_Rate)) %>% 
   full_join(.,btcData) %>%filter(!is.na(Confirmed))
  
-save(CovidRate,"./rdsData/ExplanitoryDataTest.rds")
+save(subsetCovidRate,"./rdsData/ExplanitoryDataTest.rds")
 
 ###creating variables for the day, month, and year
 
@@ -67,18 +47,43 @@ source("./r/readBitcionPrice.R")
 CovidRate %>%
   group_by(Date) %>%  
   summarise(Confirmed = sum(Confirmed),
-            Incident_Rate = mean(Indcident_Rate),
-            Death = sum(Deaths),
-            Fatality_Rate = sum(Deaths)/ sum(Confirmed*100)) %>%
+            Incident_Rate = mean(Incident_Rate),
+            Deaths = sum(Deaths),
+            Fatality_Ratio = sum(Deaths) / sum(Confirmed * 100)) %>%
   full_join(.,btcData) %>% filter(!is.na(Confirmed)) %>%
-  mutate(time = Date - myd("01/21/2020"),
+  mutate(time = Date - mdy("01/21/2020"),
          month = month(Date),
          year = year(Date),
          dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
          dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> TestCovBit
+view(TestCovBit)
 
 ##modeling
 
-Modeltest <-lm(Close~dailyActive + dailyConfirmed + dailyDeaths +time, data = CovidBit)
-summary(Modeltest)
+max(TestCovBit$Date)
+min(TestCovBit$Date)
 
+#linear relationship
+plot(Confirmed~Deaths, data=TestCovBit)
+
+### the correlation is very close to 1
+cor(TestCovBit$Confirmed,TestCovBit$Deaths)
+
+### there realtionship is -.75, which is close to -1
+cor(TestCovBit$Fatality_Ratio,TestCovBit$Incident_Rate)
+
+## boxplot shows the effect that Covid had on Bitcoin
+boxplot(TestCovBit$Close~TestCovBit$year,notch=1,col=c("grey","gold","blue"),
+        xlab = "Covid Year", ylab="Bitcoin Close",
+        main="Bitcoin Closing for the Years")
+
+##?
+boxplot(TestCovBit$Close~TestCovBit$Incident_Rate)
+
+library(corrgram)
+
+test1 <-lm(Close~dailyConfirmed + dailyDeaths +time, data = TestCovBit)
+summary(test1)
+
+test2 <-lm(Close~Fatality_Ratio+ Incident_Rate +dailyConfirmed + dailyDeaths +time, data = TestCovBit)
+summary(test2)
