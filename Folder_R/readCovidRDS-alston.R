@@ -7,21 +7,28 @@
 system.time(data <- readRDS("./rdsData/covidData.rds"))
 library(lubridate)
 library(tidyverse)
-
+library(dplyr)
 #determining which countries to choose
 countries <- as.data.frame(table(data$Country_Region))
+max(countries$Freq,countries$Var1)
+
+TopCountry <- countries %>%
+  arrange(desc(Freq)) %>%
+  group_by(Var1)
+TopCountry
+# TOP C: US,Russia,Japan,China,India,Columbia,Mexico,Ukraine,Brazil,Peru
 
 #Joining the datasets together (Covid-19 & Bitcoin)- grouping by Country_Region
-subsetCovidData <- data %>%
-     filter(date > mdy("01/01/2020") & date < mdy("09/01/2022")) %>%
-     rename(Date = date) %>%
-     # code to summarise() up to one row per day
-     group_by(Country_Region,Date) %>% 
-     summarise(Confirmed = sum(Confirmed),
-               Active = sum(Active),
-               Deaths = sum(Deaths),
-               Recovered = sum(Recovered)) %>% 
-     full_join(.,btcData)
+#subsetCovidData <- data %>%
+#     filter(date > mdy("01/01/2020") & date < mdy("09/01/2022")) %>%
+#     rename(Date = date) %>%
+#     # code to summarise() up to one row per day
+#     group_by(Country_Region,Date) %>% 
+#     summarise(Confirmed = sum(Confirmed),
+#               Active = sum(Active),
+#               Deaths = sum(Deaths),
+#               Recovered = sum(Recovered)) %>% 
+#     full_join(.,btcData)
 
 subsetCovidData <- data %>%
   filter(date > mdy("01/01/2020") & date < mdy("08/26/2022")) %>%
@@ -51,7 +58,7 @@ identical(subsetCovidData,adataframe)
 mut <- mutate(subsetCovidData,Country_Region = if_else(Country_Region=="Mainland China","China",Country_Region))
 EconData <- subsetCovidData %>%
   filter(Country_Region %in% c("US","China","Ukraine","Russia","Japan",
-                               "Germany","United Kingdom","France"))
+                               "India","United Kingdom","France"))
 View(EconData)
 
 max(subsetCovidData$Date)
