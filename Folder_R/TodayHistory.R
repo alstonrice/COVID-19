@@ -395,49 +395,5 @@ source("C:/Users/alsto/gitrepos/COVID-19/R/TimeSeries.R")
 source("C:/Users/alsto/gitrepos/COVID-19/R/TimeSeries.R")
 source("C:/Users/alsto/gitrepos/COVID-19/R/TimeSeries.R")
 source("C:/Users/alsto/gitrepos/COVID-19/R/TimeSeries.R")
-#Summary Dataset
-summary(EconData)
-##Missing values
-sum(is.na(EconData))
-# Data objects
-str(EconData)
-#Histogram
-hist(EconData)
-#Visualization
-ConfCovid=EconData$Confirmed
-Country1= EconData$Country_Region
-#Histogram- Must be numeric
-hist(ConfCovid)
-#Categorical Variables
-table(Country1)
-barplot(Country1(ConfCovid))
-barplot(table(ConfCovid))
-barplot(table(Country1))
-#Histogram- Must be numeric
-hist(ConfCovid)
-by(EconData$Confirmed,EconData$Country_Region, summary)
-##Boxplot
-boxplot(EconData$Confirmed~EconData$Country_Region)
-boxplot(EconData$Confirmed~EconData$Country_Region)+xlab("Countries")+
-ylab("Covid Confirmed")
-boxplot(EconData$Confirmed~EconData$Country_Region, xlab = "Year" ,
-ylab = "Confirm")
-boxplot(EconData$Confirmed~EconData$Country_Region, xlab = "Countries" ,
-ylab = "Confirmed Covid")
-boxplot(EconData$Confirmed~EconData$Country_Region, notch=T, xlab = "Countries",
-ylab = "Confirmed Covid")
-boxplot(EconData$Confirmed~EconData$Country_Region, notch=T,
-col=c("gold","gold","gold","gold","grey","grey","grey","grey"),
-xlab = "Countries",ylab = "Confirmed Covid",
-main= "COnfirmation for Covid-19 Cases")
-#Visualization
-SubCountry= subsetCovidData$Country_Region
-#Categorical Variables- Table output of the countries= 8.. # of observations
-#Bar-chart
-table(SubCountry)
-barplot(table(SubCountry))
-boxplot(EconData$Confirmed~EconData$Country_Region, notch=T,
-col=c("gold","gold","gold","gold","grey","grey","grey","grey"),
-xlab = "Countries",ylab = "Confirmed Covid",
-main= "COnfirmation for Covid-19 Cases")
+  
 source("C:/Users/alsto/gitrepos/COVID-19/R/readCovidRDS.R")

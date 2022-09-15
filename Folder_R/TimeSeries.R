@@ -39,6 +39,7 @@ world<- EconData1 %>%
 plot(EconData$Date, EconData$Confirmed,type="l", xlab = "Year" ,
      ylab = "Confirm")
 
+
 plot(world$...15, world$Confirmed,type="l", xlab = "Month" ,
      ylab = "Confirm")
 
@@ -54,7 +55,7 @@ install.packages("ggplot2")
 library(ggplot2)
 
 #option 1
-ggplot(data = A ,aes(x= ...14, y= Confirmed,group=1))+geom_line(linetype="dashed")+geom_point()
+ggplot(data = EconData ,aes(x= Act, y= Confirmed,group=1))+geom_line(linetype="dashed")+geom_point()
 ggplot(data = A, mapping = aes(x=...14,y=Close,col = "red"))+geom_point()
 
 install.packages("fpp")
@@ -64,6 +65,7 @@ seasonplot(A$Close,A$...15,ylab="BTC Close",xlab="Year",
            main="Season Plot: Bitcoin year data" ,
            year.labels=TRUE, year.labels.left=TRUE, col=1:6, pch=19)
 
+ggplot(data=EconData, (x=Active,y=Confirmed))
 
 
 #Decare this as time series data
@@ -102,4 +104,7 @@ ggseasonplot(CovDeaths)+
   ggtitle("Seasonal Plot: Date in Covid-19 Death Rates ")+
   ylab("Death Rates")+
   xlab("Year")
+
+
+plot(EconData$Active,EconData$Confirmed)
 
