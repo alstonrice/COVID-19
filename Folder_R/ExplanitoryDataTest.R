@@ -49,6 +49,8 @@ CovidRate %>%
   summarise(Confirmed = sum(Confirmed),
             Incident_Rate = mean(Incident_Rate),
             Deaths = sum(Deaths),
+#### Calculating the rate to start at Jan 1st- May 29. 2020
+### for the missing rows not calculating 
             Fatality_Ratio = sum(Deaths) / sum(Confirmed * 100)) %>%
   full_join(.,btcData) %>% filter(!is.na(Confirmed)) %>%
   mutate(time = Date - mdy("01/21/2020"),
@@ -58,8 +60,8 @@ CovidRate %>%
          dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> TestCovBit
 view(TestCovBit)
 
-##modeling
-
+##highest and low dates, plus a summary
+summary(TestCovBit)
 max(TestCovBit$Date)
 min(TestCovBit$Date)
 
@@ -68,6 +70,8 @@ plot(Confirmed~Deaths, data=TestCovBit)
 
 ### the correlation is very close to 1
 cor(TestCovBit$Confirmed,TestCovBit$Deaths)
+
+cor(TestCovBit$)
 
 ### there realtionship is -.75, which is close to -1
 cor(TestCovBit$Fatality_Ratio,TestCovBit$Incident_Rate)
@@ -80,10 +84,38 @@ boxplot(TestCovBit$Close~TestCovBit$year,notch=1,col=c("grey","gold","blue"),
 ##?
 boxplot(TestCovBit$Close~TestCovBit$Incident_Rate)
 
+###scatter.. shows that the relationship changed wen the goverment did lockdown 
+## and vaccines
+scatter.smooth(TestCovBit$year,TestCovBit$Close)
+
+## does the data follow the distribution.. histograms
+ggplot()
+
+##modeling
 library(corrgram)
 
-test1 <-lm(Close~dailyConfirmed + dailyDeaths +time, data = TestCovBit)
+test1 <-lm(Close~dailyConfirmed + dailyDeaths +time + Country_Re, data = TestCovBit)
 summary(test1)
 
-test2 <-lm(Close~Fatality_Ratio+ Incident_Rate +dailyConfirmed + dailyDeaths +time, data = TestCovBit)
+test2 <-lm(Close~Fatality_Ratio+ Incident_Rate +dailyConfirmed + dailyDeaths, data = TestCovBit)
 summary(test2)
+
+test3 <-lm(Close~Fatality_Ratio+ Incident_Rate, data = TestCovBit)
+summary(test3)
+
+# Model has the highest R-squared and all p-vales were significant
+#Quantitave variables
+test4 <-lm(Close~Fatality_Ratio+ Incident_Rate +time, data = TestCovBit)
+summary(test4)
+# Add country that are significant for bitcoin for the countries
+
+## close look at which country should be use
+## and use the data  for the certain country
+### Economic research to see the countries impact on the world with stocks
+# Create a Spread sheet of several world stock market web.. Tally top 10 web. Listing
+plot(Deaths~ Fatality_Ratio, data =TestCovBit)
+
+library(MASS)
+
+full.model <- lm(Close~., data=)
+Step <- stepAIC()
