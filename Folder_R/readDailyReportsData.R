@@ -87,3 +87,4 @@ saveRDS(data,"./rdsData/covidData.rds")
 
 #subset by date
 system.time(data <- readRDS("./rdsData/covidData.rds"))
+
