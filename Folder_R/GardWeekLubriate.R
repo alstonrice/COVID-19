@@ -20,7 +20,7 @@ Top <- Coun %>%
   arrange(desc(Confirmed)) %>%
   group_by(Country_Region)
 Top
-############### Creating the weeks Average#############
+############### Creating the weeks Average#####################################
 TestRun <- data %>%
   filter(date > mdy("01/01/2020") & date < mdy("09/01/2022")) %>%
   rename(Date = date) %>% 
@@ -70,15 +70,21 @@ BitCovJoin <- TopConCov %>%
                    ConfirmedRate = mean(Confirmed),
                    CloseRate = mean(Close))
 
+###########MEAN_ AVG  is above#################################################
 
+test4 <- aov(CloseRate~Country_Region, data = BitCovJoin)
+summary(test4)
 
+### countries are based off of the last country= Canadaa
+test5 <- lm(CloseRate~ .,data=BitCovJoin)
+summary(test5)
 
+### the rates for the certain countries will be the same due to covid
+boxplot(CloseRate~Country_Region, data= BitCovJoin)
 
-
-
-
-
-
+### inflation starting to occured in 2021.. due to covid (people couldnt work, go out )
+### stockmarket goes down due to people worry
+boxplot(CloseRate~year, data=BitCovJoin)
 
 
 ##########################Splitting the data by the AVERAGE separately###

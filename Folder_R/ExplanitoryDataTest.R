@@ -60,6 +60,16 @@ CovidRate %>%
          dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> TestCovBit
 view(TestCovBit)
 
+test6 <- 
+#### look into time serties.. the covid rate is not indendent from covid
+### modeling the correlation structure of my data 
+########## CreaTE A TIME- SERIES
+  
+  
+  
+  
+  
+  
 ##highest and low dates, plus a summary
 summary(TestCovBit)
 max(TestCovBit$Date)
