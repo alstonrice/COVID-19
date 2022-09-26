@@ -3,6 +3,7 @@ system.time(data <- readRDS("./rdsData/covidData.rds"))
 library(lubridate)
 library(tidyverse)
 library(dplyr)
+library(MASS)
 #determining which countries to choose
 countries <- as.data.frame(table(data$Country_Region))
 max(countries$Freq,countries$Var1)
@@ -68,7 +69,8 @@ BitCovJoin <- TopConCov %>%
   dplyr::group_by(Country_Region, year,week)%>%
   dplyr::summarize(DeathRate = mean(Deaths),
                    ConfirmedRate = mean(Confirmed),
-                   CloseRate = mean(Close))
+                   CloseRate = mean(Close),
+                   Incident_Rate = mean(Incident_Rate))
 
 ###########MEAN_ AVG  is above#################################################
 
@@ -86,7 +88,21 @@ boxplot(CloseRate~Country_Region, data= BitCovJoin)
 ### stockmarket goes down due to people worry
 boxplot(CloseRate~year, data=BitCovJoin)
 
+boxplot(Incident_Rate~ year,data=BitCovJoin)
 
+boxplot(DeathRate ~ Country_Region, data=BitCovJoin)
+
+Full.Model<- lm(CloseRate~ Country_Region + year + DeathRate + Incident_Rate, data=BitCovJoin)
+summary(Full.Model)
+
+step.model <- Full.Model %>%
+  stepAIC(trace=FALSE)
+
+
+coef(step.model)
+
+test6 <- lm(CloseRate~ year + DeathRate + Incident_Rate, data = BitCovJoin)
+summary(test6)
 ##########################Splitting the data by the AVERAGE separately###
 RegionCov <- data %>%
   filter(Country_Region %in% c("US","China","Ukraine","Russia","Japan",
