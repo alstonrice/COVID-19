@@ -65,6 +65,7 @@ CasesData %>%
          dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
          dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> TopConCov
 
+### Group AVG by Country_Region, Year, Week
 BitCovJoin <- TopConCov %>%
   dplyr::group_by(Country_Region, year,week)%>%
   dplyr::summarize(DeathRate = mean(Deaths),
@@ -72,7 +73,15 @@ BitCovJoin <- TopConCov %>%
                    CloseRate = mean(Close),
                    Incident_Rate = mean(Incident_Rate))
 
-###########MEAN_ AVG  is above#################################################
+##### Group the AVG by WEEK & YEAR.. Countries are NOT used
+WeekYear1 <- TopConCov %>%
+  dplyr::group_by(year,week)%>%
+  dplyr::summarize(DeathRate = mean(Deaths),
+                   ConfirmedRate = mean(Confirmed),
+                   CloseRate = mean(Close),
+                   Incident_Rate = mean(Incident_Rate))
+
+###########MEAN_ AVG  is above#######################################################
 
 test4 <- aov(CloseRate~Country_Region, data = BitCovJoin)
 summary(test4)
@@ -92,17 +101,61 @@ boxplot(Incident_Rate~ year,data=BitCovJoin)
 
 boxplot(DeathRate ~ Country_Region, data=BitCovJoin)
 
-Full.Model<- lm(CloseRate~ Country_Region + year + DeathRate + Incident_Rate, data=BitCovJoin)
+### What model should not be used
+Full.Model<- lm(CloseRate~ Country_Region + year + DeathRate + Incident_Rate
+                + ConfirmedRate, data=BitCovJoin)
 summary(Full.Model)
 
 step.model <- Full.Model %>%
   stepAIC(trace=FALSE)
 
-
+Step.M <- stepAIC(Full.Model, direction = "both")
+###SUmmary shows the stepIAC.. only variables used are (Year,Death,IncidentRate)
+summary(step.model)
+##### Must be less than 5 for no col linearity 
+vif(step.model)
 coef(step.model)
 
+
+## Split data between train and test/ Validation
+###First 776 rows will be used for training a multiple linear regression 
+## training the data from the dates
+### which date do I want to stop at?
+traindata<- BitCovJoin[1:776,] ## copy the first 776 rows
+str(traindata)
+
+#last rows to 1109
+testdata<- BitCovJoin[777:1109,] #Copy the last rows
+
+# Run regression model with all the independent variables in the model
+BitTrain1<- lm(CloseRate~ year + DeathRate + Incident_Rate
+              + ConfirmedRate, data=traindata)
+summary(BitTrain1)
+#Run a stepAIC model
+stepBitTrain1<-stepAIC(BitTrain1,direction="both")
+## 47% of the variation of the variables
+summary(stepBitTrain1)
+
+############################ Validate with the test data
+### predicting a model on the Bitcoin data
+## ask the model to run by the test dataset
+predictBitcoin<-predict(stepBitTrain1,testdata)
+predictBitcoin
+
+#Add predictBitcoin as a column to testdata
+testdata["Predicted"] <- predictBitcoin
+
+View(testdata)
+##Plot Actual and Predicted Bitcoin data
+plot(testdata$Predicted,testdata$CloseRate)
+
+
+##################################################################################
 test6 <- lm(CloseRate~ year + DeathRate + Incident_Rate, data = BitCovJoin)
 summary(test6)
+
+   
+
 ##########################Splitting the data by the AVERAGE separately###
 RegionCov <- data %>%
   filter(Country_Region %in% c("US","China","Ukraine","Russia","Japan",

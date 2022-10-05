@@ -6,6 +6,7 @@ aggregate(Active~Country_Region + Deaths+Recovered,subsetCovidData,sum())
 
 #CovidBit <- DataByDate %>%
   mutate(time = Date - myd("01/20/2020"),
+         week = week(Date), 
          month = month(Date),
          year = year(Date),
          dailyActive = if_else(Date == mdy("01/22/2022"),Active,Active - lag(Active)),
@@ -14,7 +15,7 @@ aggregate(Active~Country_Region + Deaths+Recovered,subsetCovidData,sum())
 #  select(Date,Close,dailyActive,dailyConfirmed,dailyDeaths,time,month,year)
 
 
-###### adding Incident
+###### adding Incident#### ALL COUNTRIES ADDED
 CovidRate <- data %>%
   filter(date > mdy("01/01/2020") & date < mdy("09/01/2022")) %>%
   rename(Date = date) %>% 
@@ -43,7 +44,7 @@ library(lubridate)
 library(tidyverse)
 
 source("./r/readBitcionPrice.R")
-
+########### Gouped by the DATE with Confirmed INcident and Deaths
 CovidRate %>%
   group_by(Date) %>%  
   summarise(Confirmed = sum(Confirmed),
@@ -54,6 +55,7 @@ CovidRate %>%
             Fatality_Ratio = sum(Deaths) / sum(Confirmed * 100)) %>%
   full_join(.,btcData) %>% filter(!is.na(Confirmed)) %>%
   mutate(time = Date - mdy("01/21/2020"),
+         week = week(Date),
          month = month(Date),
          year = year(Date),
          dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
