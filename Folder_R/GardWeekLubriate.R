@@ -73,7 +73,9 @@ BitCovJoin <- TopConCov %>%
                    CloseRate = mean(Close),
                    Incident_Rate = mean(Incident_Rate))
 
-##### Group the AVG by WEEK & YEAR.. Countries are NOT used
+##### Group the AVG by WEEK & YEAR.. Countries are NOT used.. Run to see by 
+##### training data 2020-2021
+#####test data 2022
 WeekYear1 <- TopConCov %>%
   dplyr::group_by(year,week)%>%
   dplyr::summarize(DeathRate = mean(Deaths),
@@ -115,8 +117,37 @@ summary(step.model)
 ##### Must be less than 5 for no col linearity 
 vif(step.model)
 coef(step.model)
+#### Testing grouping without country
+### Week and year showa no small values
+##### Practice by weeks
+Full.ModelNoC <- lm(CloseRate~. , data=WeekYear1)
+summary(Full.ModelNoC)
 
+step.model1 <- Full.ModelNoC %>%
+  stepAIC(trace=FALSE)
 
+Step.M1 <- stepAIC(Full.ModelNoC, direction = "both")
+###only 2020 & 2021
+traindata1<- WeekYear1[1:103,] ## copy the first 103 rows
+str(traindata1)
+
+#last rows to 138... only 2022
+testdata1<- WeekYear1[104:138,]
+Trainsample <- lm(CloseRate~ year + DeathRate + Incident_Rate
+                  + ConfirmedRate, data=traindata1)
+summary(Trainsample)
+sBitTrain1<-stepAIC(Trainsample,direction="both")
+summary(sBitTrain1)
+
+predictBitcoin1<-predict(sBitTrain1,testdata1)
+predictBitcoin1
+
+#Add predictBitcoin as a column to testdata
+testdata1["Predicted"] <- predictBitcoin1
+
+View(testdata1)
+##Plot Actual and Predicted Bitcoin data
+plot(testdata1$Predicted,testdata1$CloseRate)
 ## Split data between train and test/ Validation
 ###First 776 rows will be used for training a multiple linear regression 
 ## training the data from the dates
