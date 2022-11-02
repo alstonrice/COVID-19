@@ -64,6 +64,8 @@ CasesData %>%
          week = week(Date),
          dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
          dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> TopConCov
+######Variable analysis for the countries
+plot(DeathRate~Country_Region, data=BitCovJoin)
 
 ### Group AVG by Country_Region, Year, Week
 BitCovJoin <- TopConCov %>%
@@ -81,9 +83,18 @@ WeekYear1 <- TopConCov %>%
   dplyr::summarize(DeathRate = mean(Deaths),
                    ConfirmedRate = mean(Confirmed),
                    CloseRate = mean(Close),
-                   Incident_Rate = mean(Incident_Rate))
+                   Incident_Rate = mean(Incident_Rate)) %>% 
+### Ungroup to create W_S as a time series to count the rows  
+  ungroup() %>%
+  mutate(week_squence = seq(1,n()))
+
+summary(WeekYear1)
+
+library(haven)
+plot(DeathRate~Country_Region,data=WeekYear1)
 
 ###########MEAN_ AVG  is above#######################################################
+
 
 test4 <- aov(CloseRate~Country_Region, data = BitCovJoin)
 summary(test4)
@@ -100,10 +111,30 @@ boxplot(CloseRate~Country_Region, data= BitCovJoin)
 boxplot(CloseRate~year, data=BitCovJoin)
 
 boxplot(Incident_Rate~ year,data=BitCovJoin)
-
+##########Checking the boxplot of the Countries and the activities of the Var.
 boxplot(DeathRate ~ Country_Region, data=BitCovJoin)
 
-### What model should not be used
+########Cheacking how the Countries are Rated by the variables 
+####### To determine the best 3 Countries to pick from
+#######Using the Tukey to see which Countries have a low P-Value##################
+Death.aov<- aov(DeathRate ~ Country_Region, data=BitCovJoin)
+summary(Death.aov)
+boxplot(DeathRate ~ Country_Region, data=BitCovJoin)
+#Pst Hoc test to find the different countries
+TukeyHSD(Death.aov)
+
+Confirm.aov <- aov(ConfirmedRate ~ Country_Region, data=BitCovJoin)
+summary(Confirm.aov)
+boxplot(ConfirmedRate~ Country_Region,data=BitCovJoin)
+TukeyHSD(Confirm.aov)
+
+Incident.aov <- aov(Incident_Rate ~ Country_Region, data=BitCovJoin)
+summary(Incident.aov)
+boxplot(Incident_Rate~ Country_Region,data=BitCovJoin)
+TukeyHSD(Incident.aov)
+
+
+### What model should not be used#####################################################
 Full.Model<- lm(CloseRate~ Country_Region + year + DeathRate + Incident_Rate
                 + ConfirmedRate, data=BitCovJoin)
 summary(Full.Model)
@@ -145,6 +176,7 @@ predictBitcoin1
 #Add predictBitcoin as a column to testdata
 testdata1["Predicted"] <- predictBitcoin1
 
+
 View(testdata1)
 ##Plot Actual and Predicted Bitcoin data
 plot(testdata1$Predicted,testdata1$CloseRate)
@@ -179,6 +211,21 @@ testdata["Predicted"] <- predictBitcoin
 View(testdata)
 ##Plot Actual and Predicted Bitcoin data
 plot(testdata$Predicted,testdata$CloseRate)
+
+install.packages("forecast")
+library(fpp2)
+library(forecast)
+library(tseries)
+Time <- ts(WeekYear1$CloseRate,start=c(2020),frequency=54)
+autoplot(Time)
+
+
+
+
+
+
+
+
 
 
 ##################################################################################
