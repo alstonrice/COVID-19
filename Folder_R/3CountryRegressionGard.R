@@ -40,7 +40,9 @@ GardWeek2 <- ThreeCountry %>%
   dplyr::group_by(Country_Region, year,week)%>%
   dplyr::summarize(DeathRate = mean(Deaths),
                    ConfirmedRate = mean(Confirmed),
-                   CloseRate = mean(Close))
+                   CloseRate = mean(Close))%>%
+  dplyr::ungroup()
+
 #### Previous group by.. Didnt need the Incident Rate
 #GardWeek2 <- ThreeCountry %>%
 #  dplyr::group_by(Country_Region, year,week)%>%
@@ -107,12 +109,101 @@ set.seed(123)
 sample <- sample(c(TRUE, FALSE), nrow(GardWeek2), replace=TRUE, prob=c(0.7,0.3))
 trainS  <- GardWeek2[sample, ]
 testS   <- GardWeek2[!sample, ]
-install.packages("caret")
+
 library(caret)
-install.packages()
+### want all of the X
+X_test<- testS%>%dplyr::select(- CloseRate)
+### All the Y
+Y_test<- testS%>%dplyr::select( CloseRate)
 # Custom Control Parameters
 Custom <- trainControl(method ="repeatedcv",
                        number = 10,
                        repeats = 5,
                        verboseIter = T)
-custom <- train
+
+#Linear Model
+set.seed(1234)
+l_m<-train(CloseRate~.,
+          trainS,
+          method = 'lm',
+          trControl = Custom)
+summary(l_m)
+l_m$results
+lm
+plot(l_m$finalModel)
+
+
+#Ridge Regression
+## cross validation. the best for the model in lambda is 1
+set.seed(1234)
+ridge <- train(CloseRate~.,
+               trainS,
+               method = 'glmnet',
+               tuneGrid = expand.grid(alpha = 0,
+                                      lambda = seq(0.001,1,length=5)),
+               trControl = Custom)
+plot(ridge)
+summary(ridge)
+ridge
+
+
+#Lasso Regression
+#lambda = 1 means dont need to use   
+set.seed(1234)
+lasso <- train(CloseRate~.,
+               trainS,
+               method = 'glmnet',
+               tuneGrid = expand.grid(alpha=1,
+                                      lambda = seq(0.0001,1,length=5)),
+               trControl = Custom)
+plot(lasso)
+
+parameters <- c(seq(0.1, 2, by =0.1) ,  seq(2, 5, 0.5) , seq(5, 25, 1))
+
+###### Constructing the model for the paameters
+lasso<-train(CloseRate~.,
+             trainS,
+             method = 'glmnet', 
+             tuneGrid = expand.grid(alpha = 1, lambda = parameters) ,
+             metric =  "Rsquared"
+) 
+
+ridge<-train(CloseRate~.,
+             trainS,
+             method = 'glmnet', 
+             tuneGrid = expand.grid(alpha = 0, lambda = parameters),
+             metric =  "Rsquared"
+             
+) 
+linear<-train(CloseRate~.,
+              trainS, 
+              method = 'lm',
+              metric =  "Rsquared"
+)
+
+print(paste0('Lasso best parameters: ' , lasso$finalModel$lambdaOpt))
+print(paste0('Ridge best parameters: ' , ridge$finalModel$lambdaOpt))
+
+library(tidyverse)
+
+### comparing the models
+
+predictions_lasso <- lasso %>% predict(X_test)
+predictions_ridge <- ridge %>% predict(X_test)
+predictions_lin <- linear %>% predict(X_test)
+
+data.frame(
+  Ridge_R2 = R2(predictions_ridge, Y_test),
+  Lasso_R2 = R2(predictions_lasso, Y_test),
+  Linear_R2 = R2(predictions_lin, Y_test))
+
+###################################################################################
+
+
+
+final.model<- data.frame(
+  as.data.frame.matrix(coef(l_m$finalModel)),
+  as.data.frame.matrix(coef(ridge$finalModel)),
+  as.data.frame.matrix(coef(lasso$finalModel))
+) %>%
+  rename(Linear_coef = X1, Ridge_coef = X1.1, Lasso_coef = X1.2)

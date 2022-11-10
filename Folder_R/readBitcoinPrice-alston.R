@@ -15,3 +15,8 @@ stocks = lapply(symbols, function(symbol) {
      aStock
 })
 btcData <- do.call(rbind,stocks)
+
+
+
+#rlang::last_error()
+

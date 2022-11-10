@@ -4,6 +4,7 @@ library(lubridate)
 library(tidyverse)
 library(dplyr)
 library(MASS)
+library(haven)
 #determining which countries to choose
 countries <- as.data.frame(table(data$Country_Region))
 max(countries$Freq,countries$Var1)
