@@ -4,7 +4,7 @@
 
 directory <- "./csse_covid_19_data/csse_covid_19_daily_reports_us/"
 theFiles <- list.files(path=directory,pattern="*.csv",full.names = TRUE)
-filenames <- list.files(path=directory,pattern="*.csv")
+filenames <- list.files(path=directory,pattern="*.csv")  
 
 library(lubridate)
 

@@ -1,5 +1,6 @@
 ######## Choosing 3 Countries to Choose from-- From the GardWeekLubriate.R scrip
 ### RUN GARDWEEK
+#### Final for time series
 CasesData %>%
   filter(Country_Region %in% c("US","China","India")) %>%
   group_by(Country_Region,Date) %>%  
@@ -62,11 +63,11 @@ summary(LMThree)
 ###First 776 rows will be used for training a multiple linear regression 
 ## training the data from the dates
 ### which date do I want to stop at?
-trainThree<- ThreeWeek[1:82,] ## copy the first 82 rows
-str(trainThree)
+#trainThree<- ThreeWeek[1:82,] ## copy the first 82 rows
+#str(trainThree)
 
 #last rows to 138
-testThree<- GardWeek2[83:138,] #Copy the last rows
+#testThree<- GardWeek2[83:138,] #Copy the last rows
 
 # Run regression model with all the independent variables in the model
 #BitTraining33<- lm(CloseRate~ year + DeathRate + Incident_Rate
@@ -104,14 +105,14 @@ autoplot(Time)
 
 #make this example reproducible
 set.seed(123)
-
+####### For the FINAL MODEL (Train, and test)
 #use 70% of dataset as training set and 30% as test set
 sample <- sample(c(TRUE, FALSE), nrow(GardWeek2), replace=TRUE, prob=c(0.7,0.3))
 trainS  <- GardWeek2[sample, ]
 testS   <- GardWeek2[!sample, ]
 
 library(caret)
-### want all of the X
+  ### want all of the X
 X_test<- testS%>%dplyr::select(- CloseRate)
 ### All the Y
 Y_test<- testS%>%dplyr::select( CloseRate)
@@ -159,7 +160,7 @@ lasso <- train(CloseRate~.,
 plot(lasso)
 
 parameters <- c(seq(0.1, 2, by =0.1) ,  seq(2, 5, 0.5) , seq(5, 25, 1))
-
+##### DOnt need
 ###### Constructing the model for the paameters
 lasso<-train(CloseRate~.,
              trainS,
@@ -173,19 +174,19 @@ ridge<-train(CloseRate~.,
              method = 'glmnet', 
              tuneGrid = expand.grid(alpha = 0, lambda = parameters),
              metric =  "Rsquared"
-             
+### Dont need             
 ) 
 linear<-train(CloseRate~.,
               trainS, 
               method = 'lm',
               metric =  "Rsquared"
 )
-
+### the last parameter is 25
 print(paste0('Lasso best parameters: ' , lasso$finalModel$lambdaOpt))
 print(paste0('Ridge best parameters: ' , ridge$finalModel$lambdaOpt))
 
 library(tidyverse)
-
+#### compare the 3 to see the best fit
 ### comparing the models
 
 predictions_lasso <- lasso %>% predict(X_test)
