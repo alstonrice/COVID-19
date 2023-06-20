@@ -1,6 +1,14 @@
+### filter the data by the specific countries
+########################################     CasesData created  ##################
+CasesData <- mut %>%
+  filter(Country_Region %in% c("US","China","Ukraine","Russia","Japan",
+                               "India","Gremany","France","South Korea","Canada"))
+
+
 ######## Choosing 3 Countries to Choose from-- From the GardWeekLubriate.R scrip
 ### RUN GARDWEEK
 #### Final for time series
+
 CasesData %>%
   filter(Country_Region %in% c("US","China","India")) %>%
   group_by(Country_Region,Date) %>%  
@@ -34,7 +42,7 @@ ThreeWeek <- ThreeCountry %>%
   ungroup() %>%
   mutate(week_squence = seq(1,n()))
 
-######Variable analysis for the countries
+######Variable analysis for the countries. the country China has the lowest death rate and Idia has the next highest death rate and the US country has the highest death rate
 boxplot(Deaths~Country_Region, data=ThreeCountry)
 
 GardWeek2 <- ThreeCountry %>%
@@ -52,7 +60,7 @@ GardWeek2 <- ThreeCountry %>%
 #                   CloseRate = mean(Close),
 #                   Incident_Rate = mean(Incident_Rate))
 ### Comparing the 3 Countire
-boxplot(DeathRate~Country_Region, data=GardWeek2, main= "3 Country Obvserve")
+boxplot(DeathRate~Country_Region, data=GardWeek2, main= "3 Country Obvservations in Death Rate",col=c("blue", "green", "red"))
 ### Looking over the Regression analysis
 LMThree<-lm(CloseRate~Country_Region + DeathRate + ConfirmedRate, data=GardWeek2)
 summary(LMThree)
@@ -99,7 +107,46 @@ library(forecast)
 library(tseries)
 Time <- ts(ThreeWeek$CloseRate,start=c(2020),frequency=54, xlab= "Weeks",
            ylab= "Bitcoin Closing Rate")
-autoplot(Time)
+autoplot(Time, color = "blue") + 
+  labs(title = "Bitcoin Closing Rate Over Time",
+       x = "Weeks",
+       y = "Bitcoin Closing Rate") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, vjust = 0.5),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.y = element_line(colour = "#EAEAEA"),
+        panel.grid.major.x = element_blank(),
+        legend.position = "none")
+#autoplot(Time)
+
+# Create a time series object ### Original occuring dataset
+Time <- ts(ThreeWeek$CloseRate, start = c(2020), frequency = 54)
+
+# Plot the time series with axis labels
+plot(Time, xlab = "Weeks", ylab = "Bitcoin Closing Rate")
+
+
+# create a new time series for the next 3 years
+future_ts <- ts(rep(NA, 1*54), start = c(2023), frequency = 54)
+#plot(future_ts, xlab = "Weeks", ylab = "Bitcoin Closing Rate")
+
+# combine the original time series with the future time series
+combined_ts <- c(Time, future_ts)
+library(forecast)
+library(ggplot2)
+
+### the forcasting limit is unsure do to the possibility of change
+# Assuming combined_ts is a time series object
+# load required libraries
+
+
+autoplot(forecast(combined_ts, h = 54*1)) +
+  labs(title = "Forecast of Bitcoin Closing Rate for the Next 3 Years",
+       x = "Weeks",
+       y = "Closing Rate")
+
+plot(combined_ts, xlab = "Weeks", ylab = "Bitcoin Closing Rate")
 
 #####################################################################################
 
@@ -159,9 +206,11 @@ lasso <- train(CloseRate~.,
                trControl = Custom)
 plot(lasso)
 
-parameters <- c(seq(0.1, 2, by =0.1) ,  seq(2, 5, 0.5) , seq(5, 25, 1))
 ##### DOnt need
 ###### Constructing the model for the paameters
+
+parameters <- c(seq(0.1, 2, by =0.1) ,  seq(2, 5, 0.5) , seq(5, 25, 1))
+
 lasso<-train(CloseRate~.,
              trainS,
              method = 'glmnet', 

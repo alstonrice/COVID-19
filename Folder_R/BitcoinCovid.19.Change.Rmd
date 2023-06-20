@@ -1,0 +1,176 @@
+---
+title: "CovidBitcoin1"
+author: "Alston Rice"
+date: "2023-06-13"
+output: html_document
+---
+
+title: "SampleTemplateCov"
+author: "Alston Rice"
+date: "2023-03-16"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis 
+
+This is the overview section ~ 250 words to describe the paper in terms of key hypotheses,  conclusions, and potential future research. 
+
+
+This paper describes the analyst of the Global priceof Bitcoin Price and the Global daily values for Covid-19 statistics. The hypothesis focuses on the Bitcoin stock prices has no significant change in the Covid-19 cases, Death, and COnfirmed.........
+
+## Background
+
+This section summarizes relevant literature as an introduction / setup for hypotheses to be tested in the paper. 
+
+
+The novel corona virus of 2019 (Covid-19) started a pandemic resulting in devastating human hardships and impactful disruptions to the world’s economy. The pandemic affected global stock markets in unprecedented ways through trends and fluctuations unobserved in the markets’ prior history. The presented study will investigate the impact of Covid-19 on global markets focusing on cryptocurrency fluctuations and trends of Bitcoin. Covid-19 data from the (Center for Systems Science and Engineering (CSSE) at Johns Hopkins University) data repository and Bitcoin data web-scraped from the Yahoo Financial (Quantitative Financial Modelling Framework) were used for the investigation. 
+*************
+In the process, the study might be a bit off due to some countries giving off false informations about there covid-19 cases. The study must be measure by all counties combined due to the Bitcoin being a world wide currency. The effect of the world need to be joined by 1 unit (combined) to measure if Bitcoin was effected by Covid-19. 
+*********
+Through time series models, time and direction endpoints of Covid-19 data will be used to estimate Bitcoin’s stock prices for the future observation. 
+
+The cryptocurrency market, including Bitcoin, is quite volatile, and several variables, including but not limited to macroeconomic conditions, regulatory developments, and market sentiment, can affect its performance. Global financial markets were significantly impacted by the COVID-19 outbreak, and the cryptocurrency market was not exempt from these consequences. So, it is crucial to proceed with any examination of Bitcoin's performance cautiously and consider a variety of factors in the dataset that could have influenced its output during the Covid-19 repository timeframe.
+
+
+
+Nonetheless, examining how the pandemic influenced Bitcoin's production can offer important insights into the market's adaptation and resilience in the event of a serious disaster. Researchers can gain a better grasp of how the cryptocurrency market reacts to big global events and how it may develop in the future by determining the independent variables in the analysis that had the most influence on Bitcoin's stock market during this period in the end of 2019 to the beginning of 2023. Investors, decision-makers, and other stakeholders with an interest in the cryptocurrency market and its potential role in the larger financial system may find this material to be helpful.
+
+
+What is Covid-19?
+
+
+
+What is Bitcoin?
+
+
+## Research Questions
+
+Given the literature review as context, describe the major hypotheses to be tested in the paper. Include one or more null hypotheses, and for each null hypothesis provide one or more alternate hypotheses. Then explain the types of data needed to test each hypothesis. 
+
+Discuss whether the purpose of the analysis is to be descriptive (explains the data that was collected), inferential (makes inferences about a larger population based on analysis of a sample), or predictive (uses existing data to predict future values) and your reasons for choosing one type of analysis over others. 
+
+
+Hypothesis?
+The goal of the research novel is to examine how the COVID-19 outbreak has affected the Bitcoin market and use that information to forecast Bitcoin's future. The research will also take future crises' potential effects on cryptocurrencies and the metaverse into account. Given that the pandemic has had a significant effect on the world economy, devastating human hardships, and financial markets, this is a fascinating and timely topic. The research may offer important insights into how virtual currencies and other financial assets may react to upcoming crises by examining the connection between the pandemic and Bitcoin.
+
+
+In the literature review, the novel will look into different hypothesis testing to determine the studies purpose of the analysis:
+
+The first concept structure would be to look into the Covid-19 data and analyze of the different counties. The null hypothesis for this case would be that there is no signiﬁcant difference in the rate of infections of COVID-19 cases between countries shown in the COVID-19 Dashboard at the Johns Hopkins University Center for Systems Science and Engineering(JHU CSSE). The alternate hypothesis is that there is a large disparity in the rate of infection cases reported between countries, indicating that the data can be examined to make inferences about the effects of COVID-19 in other regions of the world. Are there significant large difference in the rate of infection of COVID-19 cases across countries, as indicated on the COVID-19 Dashboard from the Johns Hopkins University Center for Systems Science and Engineering(JHU CSSE)?
+
+
+
+
+
+If the alternative hypothesis is correct, the research can then look into whether particular COVID-19 case categories have the strongest relationships with economic changes such as fluctuations in cryptocurrency markets and whether these relationships are consistent across different the countries. This knowledge could be helpful in planning a study to investigate the connection between COVID-19 and the bitcoin dataset, for instance by looking at the effects of economic shifts brought on by the pandemic on cryptocurrency markets.
+
+Final Hyothesis:
+
+Null hypothesis: There is no significant relationship between the Covid-19 death infection rate and Bitcoin stock prices during the pandemic years.
+
+Alternate hypothesis: The Covid-19 death infection rate is significantly associated with Bitcoin stock prices during the pandemic years, with higher death rates leading to higher Bitcoin prices and lower death rates leading to lower Bitcoin prices.
+
+
+
+## Data Sources & Cleaning
+
+
+########## talk about the top 3 countries in the cleaning#####
+This section explains the sources of data, why they were chosen, their limitations and steps taken to clean / subset / eliminate missing values. For example, with the Johns Hopkins COVID-19 data, consider the following items:
+
+* Data elements collected changed over time
+* Data elements were cumulative numbers, requiring additional processing to derive daily counts
+* Country specific data correction processes resulted in anomalies in the data, such as negative daily counts for deaths or confirmed cases
+
+####################################################################
+(Daily Report for the Covid-19 data) 
+The Dataset was important to note that numerous research studies pertaining to the COVID-19 pandemic have utilized the JHU CSSE dataset. The information on confirmed cases, deaths, active cases, incidence rates, and more is included in the data and can be used to examine how the virus is spreading at different scales (such as the global, national, state/province, and county levels).
+
+For additional in-depth details on data preparation and cleansing.  The link to the COVID-19 data page is located on the JHU CSSE website below:
+https://coronavirus.jhu.edu/data
+
+The COVID-19 raw data files for cases, fatalities, and recoveries, as well as the source code for data processing and analysis, are also accessible through JHU CSSE's GitHub repository.
+
+
+(How the files were imported into R studio)
+Within the R studio analysis software the code first reads all the CSV files in the directory, and then uses the lubridate package to extract the date from the file name and add it as a new column to the data. The code also cleans the column names and adds missing columns for earlier dates in the dataset. The specific columns that are added or modified depend on the date of the data file. For example, for the first batch of files before February 1, 2020, the columns for province, latitude, longitude, active cases, and other fields were not available, so the code assigns these columns to NA values. The resulting data is stored in the "data" variable as a data frame, and the number of columns is checked to ensure consistency. Finally, the dates in the "date" column are converted to the "mdy" date format using the lubridate package to proceed with the research analysis.
+
+
+##########################
+(Bitcoin Stock Market pull)
+
+For the Bitcoin data, explain the source of the financial info (quantmod R package plus Yahoo! Finance website). 
+
+The "quantmod" package in R code, which was used to extract the Bitcoin stock price data from the Yahoo Finance API, provides the dataset format for Bitcoin. The code provides the start and end dates for the data extraction and specifies "BTC-USD" as the symbol for Bitcoin.
+Assigning column names for Open, High, Low, Close, Volume, Adjusted, Symbol, and Date after the data has been extracted and converted to a data frame. A single data frame called "btcData" is created by binding all of the obtained data frames together using the "do.call" function. The received Bitcoin stock price values were then examined to look for any problems that would affect the research study.
+
+
+(Packages)
+In R Studio, The there were various packages to manipulate, analyze, and visualize the data, such as tidyverse, ggplot2, dplyr, and forecast, among others.
+
+The dataset was determined to be reduce by selecting a subset of countries based on certain criteria, such as population size, economic importance, & data availability from the daily reports in the Covid-19 Repository data. By focusing on a smaller subset of countries, this simplify the analysis and reduce the noise caused by countries with insignificant data or small populations that do not have enough cases.
+
+The counties first chosen economical focus was the top 10 countries with the highest economic impact, based on various sources. This can be a reasonable approach for research question that focused on understanding the effects of COVID-19 on the global economy or the economic performance of specific countries.
+
+
+
+Steps:
+1. Combine the two datasets, then choose the variables that will be most helpful for the analysis.
+(check the code for more information)
+
+2. Due to the regenerated cases adding up from the present case by the dates determined by the date, the variables in the Covid-19 repository dataset were examined by the analysis and removed from the dataset.
+
+3. The most helpful variables in the dataset were the Deaths, Confirmed, and Closing (Bitcoin) rates.
+
+4. The 10 counties were examined again in the dataset and the variables were analyzed. Based on analysis from several Google searches and the analysis. The research would be more interest and direct with picking the top 3 counties with the greatest economic impact on the world.
+
+
+
+
+## Exploratory Analysis
+
+Provide some exploratory data analysis / visualizations to illustrate / describe features of the data to be analyzed.
+
+## Analysis & Results
+
+Conduct the analysis, summarizing into tables that are standard for journal articles given the type of data analysis. For example, a regression analysis might include a table of effects / effect sizes and p-values, along with one or more goodness-of-fit measures.
+
+Discuss whether to accept or reject null hypotheses, and why they were accepted or rejected. In addition to statistical significane, explain the substantive meaning of the results. 
+
+## Conclusions & Implications for Future Research
+
+Given the results of the analysis, highlight some general conclusions and describe any implications / ideas for future research given the results of the analysis. 
+
+\newpage 
+
+## References
+
+List the external articles, papers, and data sources used in the paper. 
+
+For example, the Johns Hopkins COVID-19 data would be cited as follows, per the [README](https://github.com/CSSEGISandData/COVID-19) from the Johns Hopkins University's COVID-19 Github Repository: 
+
+Dong E, Du H, Gardner L. _An interactive web-based dashboard to track COVID-19 in real time._ Lancet Inf Dis. 20(5):533-534. doi: 10.1016/S1473-3099(20)30120-1
+
+Ryan JA, Ulrich JM (2022). _quantmod: Quantitative Financial Modelling Framework_. R package version 0.4.20, <https://CRAN.R-project.org/package=quantmod>.
+
+
+```{r loadData,include = FALSE}
+# this is a named chunk of R code. Naming the chunks enables one
+# to load all the code at the bottom of the document and reference it by name
+# where needed earlier in the document. 
+
+#
+# note: one can use the `include()` function to include files from the file system
+#       as part of the Rmd file while keeping the code modular. 
+```
+
+```{r sessionInfo,include = FALSE}
+
+sessionInfo() # sometimes it is helpful to know exactly what R packages were used for
+              # the analysis 
