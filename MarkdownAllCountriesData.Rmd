@@ -1,0 +1,60 @@
+---
+title: "SampleCodeFinal"
+author: "Alston Rice"
+date: "2024-01-22"
+output: html_document
+---
+
+Joined the Countries together with Bitcoin data. Collected the information about Daily Confirmed and Daily Deaths.
+
+There are 19 variables in the tables
+
+```{r setup, include=FALSE}
+TestRun %>%
+  #filter(Country_Region) %>%
+  group_by(Country_Region,Date) %>%  
+  summarise(Confirmed = sum(Confirmed),
+            Incident_Rate = mean(Incident_Rate),
+            Deaths = sum(Deaths),
+            #### Calculating the rate to start at Jan 1st- May 29. 2020
+            ### for the missing rows not calculating 
+            Fatality_Ratio = sum(Deaths) / sum(Confirmed * 100)) %>%
+  full_join(.,btcData) %>% filter(!is.na(Confirmed)) %>%
+  mutate(time = Date - mdy("01/21/2020"),
+         month = month(Date),
+         year = year(Date),
+         week = week(Date),
+         dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
+         dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> FullCountry
+```
+
+## R Markdown
+
+### Group AVG by Country_Region, Year, Week
+##### Group the AVG by WEEK & YEAR.. Countries are NOT used.. Run to see by 
+##### training data 2020-2021
+
+```{r cars}
+##### training data 2020-2021
+#####test data 2022
+ThreeWeek <- FullCountry %>%
+  dplyr::group_by(year,week)%>%
+  dplyr::summarize(DeathRate = mean(Deaths),
+                   ConfirmedRate = mean(Confirmed),
+                   CloseRate = mean(Close),
+                   Incident_Rate = mean(Incident_Rate)) %>%
+  
+  ### Ungroup to create W_S as a time series to count the rows  
+  ungroup() %>%
+  mutate(week_squence = seq(1,n()))
+```
+
+## Including Plots
+
+Death rate for all the countries
+
+```{r pressure, echo=FALSE}
+boxplot(Deaths~Country_Region, data=FullCountry)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
