@@ -5,9 +5,360 @@ date: "2024-01-22"
 output: html_document
 ---
 
+
+#
+# readCovidRDS.R
+# 
+# read the COVID data after the files have been combined into
+# a single data frame and saved to disk
+#
+# (c) 2020 - 2023 Leonard Greski
+# copying permitted with attribution 
+
+# 2023-05-28 moved code to standardize country names to readDailyReportsData.R 
+
+# depends on: readDailyReportsData.R 
+if(!file.exists("./rdsData/covidData.rds")) source("./R/readDailyReportsData.R")
+
+```{r}
+library(tidyverse)
+library(lubridate)
+max(data$date)
+countries <- as.data.frame(table(data$Country_Region))
+
+countries <- as.data.frame(table(data$Country_Region))
+countries$pct <- round(100 * countries$Freq / sum(countries$Freq), digits = 4) 
+
+# read bitcoin data 
+#source("./R/readBitcoinPrices.R")
+
+subsetCovidData <- data %>%
+     filter(date > mdy("01/01/2020") & date < mdy("09/01/2023")) %>%
+     rename(Date = date) %>%
+     # use base R ifelse() to avoid typing problem with if_else() 
+     mutate(Confirmed = ifelse(is.na(Confirmed),0,Confirmed),
+            Active = ifelse(is.na(Active),0,Active),
+            Deaths = ifelse(is.na(Deaths),0,Deaths),
+            Incident_Rate = ifelse(is.na(Incident_Rate),0,Incident_Rate),
+            Recovered = ifelse(is.na(Recovered),0,Recovered),
+            Country_Region = case_when(Country_Region == "Mainland China" ~ "China",
+                                       TRUE ~ Country_Region)) %>%
+     # code to summarise() up to one row per country per day
+     group_by(Country_Region,Date) %>% 
+     summarise(Fatality_Rate = sum(Deaths) / sum(Confirmed) * 100,
+               Confirmed = sum(Confirmed),
+               Deaths = sum(Deaths),
+               Incident_Rate = sum(Incident_Rate)) %>% 
+     full_join(.,btcData) %>% filter(!is.na(Confirmed))
+
+#saveRDS(subsetCovidData,"./rdsData/covidAndBitcoinAllCountries.rds")
+```
+
+# 19 Variables in the dataset below
+
+```{r}
+subsetCovidData %>%
+  #filter(Country_Region) %>%
+  group_by(Country_Region,Date) %>%  
+  summarise(Confirmed = sum(Confirmed),
+            Incident_Rate = mean(Incident_Rate),
+            Deaths = sum(Deaths),
+            #### Calculating the rate to start at Jan 1st- May 29. 2020
+            ### for the missing rows not calculating 
+            Fatality_Ratio = sum(Deaths) / sum(Confirmed * 100)) %>%
+  full_join(.,btcData) %>% filter(!is.na(Confirmed)) %>%
+  mutate(time = Date - mdy("01/21/2020"),
+         month = month(Date),
+         year = year(Date),
+         week = week(Date),
+         dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
+         dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> FullCountryTest
+```
+
+### Group AVG by Country_Region, Year, Week
+##### Group the AVG by WEEK & YEAR.. Countries are NOT used.. Run to see by 
+##### training data 2020-2021
+#####test data 2022
+
+```{r}
+CountryTest1 <- FullCountryTest %>%
+  dplyr::group_by(year,week)%>%
+  dplyr::summarize(DeathRate = mean(Deaths),
+                   ConfirmedRate = mean(Confirmed),
+                   CloseRate = mean(Close),
+                   Incident_Rate = mean(Incident_Rate)) %>%
+  
+  ### Ungroup to create W_S as a time series to count the rows  
+  ungroup() %>%
+  mutate(week_squence = seq(1,n()))
+
+
+CountryTest2 <- FullCountryTest %>%
+  dplyr::group_by(Country_Region, year,week)%>%
+  dplyr::summarize(DeathRate = mean(Deaths),
+                   ConfirmedRate = mean(Confirmed),
+                   CloseRate = mean(Close))%>%
+  dplyr::ungroup()
+
+boxplot(DeathRate~year, data=CountryTest1, main= "year rating for the observation in Death Rate",col=c("blue", "green", "red"))
+boxplot(CloseRate~year, data=CountryTest1, main= "Year Obvservations in Close Rate Without Country",col=c("blue", "green", "red"))
+boxplot(CloseRate~year, data=CountryTest2, main= "Year Obvservations in Close Rate With Country",col=c("blue", "green", "red"))
+### Looking over the Regression analysis
+##### From original dataset above
+LMThree2<-lm(CloseRate~year + DeathRate + ConfirmedRate, data=CountryTest2)
+summary(LMThree2)
+
+## From the past dataset with Dr. Gardner
+LMThree1<-lm(CloseRate~year + DeathRate + ConfirmedRate, data=CountryTest1)
+summary(LMThree1)
+```
+
+## Split data between train and test/ Validation
+###First 776 rows will be used for training a multiple linear regression 
+## training the data from the dates
+### which date do I want to stop at?
+#trainThree<- ThreeWeek[1:82,] ## copy the first 82 rows
+#str(trainThree)
+
+#last rows to 138
+#testThree<- GardWeek2[83:138,] #Copy the last rows
+
+# Run regression model with all the independent variables in the model
+#BitTraining33<- lm(CloseRate~ year + DeathRate + Incident_Rate
+#               + ConfirmedRate + week(), data=trainThree)
+
+```{r}
+####  Run 1 time   ####
+
+## setting the training and test data for time series
+trainThree<- CountryTest1[1:82,] ## copy the first 82 rows
+str(trainThree)
+
+#last rows to 138
+testThree<- CountryTest1[83:138,] #Copy the last rows
+```
+
+
+
+```{r}
+# Run regression model with all the independent variables in the model
+#BitTraining33<- lm(CloseRate~ year + DeathRate + Incident_Rate
+#               + ConfirmedRate + week(), data=trainThree)
+BitTraining33<- lm(CloseRate~., data=trainThree)
+summary(BitTraining33)
+#Run a stepAIC model
+stepBitTrain33<-stepAIC(BitTraining33,direction="both")
+## 47% of the variation of the variables
+summary(stepBitTrain33)
+```
+
+### Linear model
+
+```{r}
+#make this example reproducible
+set.seed(123)
+####### For the FINAL MODEL (Train, and test)
+#use 70% of dataset as training set and 30% as test set
+sample <- sample(c(TRUE, FALSE), nrow(CountryTest1), replace=TRUE, prob=c(0.7,0.3))
+trainS  <- CountryTest1[sample, ]
+testS   <- CountryTest1[!sample, ]
+
+library(caret)
+  ### want all of the X
+X_test<- testS%>%dplyr::select(- CloseRate)
+### All the Y
+Y_test<- testS%>%dplyr::select( CloseRate)
+# Custom Control Parameters
+Custom <- trainControl(method ="repeatedcv",
+                       number = 10,
+                       repeats = 5,
+                       verboseIter = T)
+
+#Linear Model
+set.seed(1234)
+l_m<-train(CloseRate~.,
+          trainS,
+          method = 'lm',
+          trControl = Custom)
+summary(l_m)
+l_m$results
+lm
+plot(l_m$finalModel)
+
+```
+
+## Ridge Regression
+
+```{r}
+#Ridge Regression
+## cross validation. the best for the model in lambda is 1
+set.seed(1234)
+ridge <- train(CloseRate~.,
+               trainS,
+               method = 'glmnet',
+               tuneGrid = expand.grid(alpha = 0,
+                                      lambda = seq(0.001,1,length=5)),
+               trControl = Custom)
+plot(ridge)
+summary(ridge)
+ridge
+```
+
+### Lasso Regression
+
+```{r}
+#Lasso Regression
+#lambda = 1 means dont need to use   
+set.seed(1234)
+lasso <- train(CloseRate~.,
+               trainS,
+               method = 'glmnet',
+               tuneGrid = expand.grid(alpha=1,
+                                      lambda = seq(0.0001,1,length=5)),
+               trControl = Custom)
+plot(lasso)
+```
+####for showing the difference in the Linear, Ridge, Lasso####
+
+
+
+```{r}
+parameters <- c(seq(0.1, 2, by =0.1) ,  seq(2, 5, 0.5) , seq(5, 25, 1))
+
+lasso<-train(CloseRate~.,
+             trainS,
+             method = 'glmnet', 
+             tuneGrid = expand.grid(alpha = 1, lambda = parameters) ,
+             metric =  "Rsquared"
+) 
+
+ridge<-train(CloseRate~.,
+             trainS,
+             method = 'glmnet', 
+             tuneGrid = expand.grid(alpha = 0, lambda = parameters),
+             metric =  "Rsquared"
+### Dont need             
+) 
+linear<-train(CloseRate~.,
+              trainS, 
+              method = 'lm',
+              metric =  "Rsquared"
+)
+### the last parameter is 25
+print(paste0('Lasso best parameters: ' , lasso$finalModel$lambdaOpt))
+print(paste0('Ridge best parameters: ' , ridge$finalModel$lambdaOpt))
+
+library(tidyverse)
+#### compare the 3 to see the best fit
+### comparing the models
+
+predictions_lasso <- lasso %>% predict(X_test)
+predictions_ridge <- ridge %>% predict(X_test)
+predictions_lin <- linear %>% predict(X_test)
+
+data.frame(
+  Ridge_R2 = R2(predictions_ridge, Y_test),
+  Lasso_R2 = R2(predictions_lasso, Y_test),
+  Linear_R2 = R2(predictions_lin, Y_test))
+```
+
+
+
+```{r}
+#install.packages("forecast")
+library(fpp2)
+library(forecast)
+library(tseries)
+
+
+# Create a time series object ### Original occuring dataset
+Time <- ts(CountryTest1$CloseRate, start = c(2020), frequency = 54)
+
+# Plot the time series with axis labels
+plot(Time, xlab = "Weeks", ylab = "Bitcoin Closing Rate")
+
+
+# create a new time series for the next 3 years
+future_ts <- ts(rep(NA, 1*54), start = c(2023), frequency = 54)
+#plot(future_ts, xlab = "Weeks", ylab = "Bitcoin Closing Rate")
+
+# combine the original time series with the future time series
+combined_ts <- c(Time, future_ts)
+library(forecast)
+library(ggplot2)
+
+### the forcasting limit is unsure do to the possibility of change
+# Assuming combined_ts is a time series object
+# load required libraries
+
+
+autoplot(forecast(combined_ts, h = 54*1)) +
+  labs(title = "Forecast of Bitcoin Closing Rate for the Next 3 Years",
+       x = "Weeks",
+       y = "Closing Rate")
+
+plot(combined_ts, xlab = "Weeks", ylab = "Bitcoin Closing Rate")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## the alignment of the Countries is incorrect. Need to go back and fix
+
+```{r}
+final.model<- data.frame(
+  as.data.frame.matrix(coef(l_m$finalModel)),
+  as.data.frame.matrix(coef(ridge$finalModel)),
+  as.data.frame.matrix(coef(lasso$finalModel))
+) %>%
+  rename(Linear_coef = X1, Ridge_coef = X1.1, Lasso_coef = X1.2)
+```
+
+
+
+
+
+
+##This is separating countries all together
+```{r}
+######Variable analysis for the countries. the country China has the lowest death rate and Idia has the next highest death rate and the US country has the highest death rate
+boxplot(Deaths~Country_Region, data=FullCountryTest)
+
+GardWeek2 <- FullCountryTest %>%
+  dplyr::group_by(Country_Region, year,week)%>%
+  dplyr::summarize(DeathRate = mean(Deaths),
+                   ConfirmedRate = mean(Confirmed),
+                   CloseRate = mean(Close))%>%
+  dplyr::ungroup()
+```
+
+```{r}
+### Looking over the Regression analysis
+LMThree<-lm(CloseRate~Country_Region + DeathRate + ConfirmedRate, data=GardWeek2)
+summary(LMThree)
+
+```
+
+
+
+
+
+
+### work on the code below if the code above does not work
+
 Joined the Countries together with Bitcoin data. Collected the information about Daily Confirmed and Daily Deaths.
 
 There are 19 variables in the tables
+## for 2022From previous code
 
 ```{r setup, include=FALSE}
 TestRun %>%
@@ -51,7 +402,7 @@ ThreeWeek <- FullCountry %>%
 
 ## Including Plots
 
-Death rate for all the countries
+Death rate for all the countries.
 
 ```{r pressure, echo=FALSE}
 boxplot(Deaths~Country_Region, data=FullCountry)
