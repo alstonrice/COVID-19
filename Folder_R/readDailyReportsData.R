@@ -95,6 +95,9 @@ system.time(data <- readRDS("./rdsData/covidData.rds"))
 
 ############################################################################################
 
+
+#####    Start Running the CODE Here    ######
+
 directory <- "./csse_covid_19_data/csse_covid_19_daily_reports/"
 
 # read all files in directory
@@ -171,3 +174,34 @@ data <- do.call(rbind,dataList)
 library(lubridate)
 data$date <- mdy(data$date)
 
+############################# Countries being checked#####
+# clean the country names
+data$Country_Region <- sub(" Azer","Azer",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub(", The","",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Dominica$","Dominican Republic",data$Country_Region)
+data$Country_Region <- sub("g SAR","g",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub(" (Islamic Republic of)","",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Macao SAR","Macau",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Mainland ","",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("occupied Palestinian territory","Israel",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("West Bank and Gaza","Israel",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Palestine","Israel",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Republic of the Congo","Congo (Kinshasa)",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Republic of Korea","Korea, South",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Northern Ireland","Ireland",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Republic of ","",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Diamond Princess","Cruise Ship",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Russian Federation","Russia",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("South Korea","Korea, South",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("South Sudan","Sudan",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Summer Olympics 2020","Japan",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Taiwan*","Taiwan",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("The Gambia","Gambia",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("The Bahamas","Bahamas",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Taipei and environs","Taiwan",data$Country_Region,fixed = TRUE)
+data$Country_Region <- sub("Winter Olympics 2022","China",data$Country_Region,fixed = TRUE)
+
+
+# make directory & save the RDS
+if(!dir.exists("./rdsData")) dir.create("./rdsData")
+saveRDS(data,"./rdsData/covidData.rds")

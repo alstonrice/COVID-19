@@ -1,5 +1,5 @@
 ---
-title: "SampleCodeFinal"
+title: "Bitcoin Closed Stock Prices Vs. Covid-19 Effects"
 author: "Alston Rice"
 date: "2024-01-22"
 output: html_document
@@ -8,17 +8,7 @@ output: html_document
 
 #
 # readCovidRDS.R
-# 
-# read the COVID data after the files have been combined into
-# a single data frame and saved to disk
-#
-# (c) 2020 - 2023 Leonard Greski
-# copying permitted with attribution 
 
-# 2023-05-28 moved code to standardize country names to readDailyReportsData.R 
-
-# depends on: readDailyReportsData.R 
-if(!file.exists("./rdsData/covidData.rds")) source("./R/readDailyReportsData.R")
 
 ```{r}
 library(tidyverse)
@@ -117,15 +107,10 @@ summary(LMThree1)
 ###First 776 rows will be used for training a multiple linear regression 
 ## training the data from the dates
 ### which date do I want to stop at?
-#trainThree<- ThreeWeek[1:82,] ## copy the first 82 rows
-#str(trainThree)
 
-#last rows to 138
-#testThree<- GardWeek2[83:138,] #Copy the last rows
 
 # Run regression model with all the independent variables in the model
-#BitTraining33<- lm(CloseRate~ year + DeathRate + Incident_Rate
-#               + ConfirmedRate + week(), data=trainThree)
+
 
 ```{r}
 ####  Run 1 time   ####
@@ -353,52 +338,10 @@ summary(LMThree)
 
 
 
-### work on the code below if the code above does not work
 
-Joined the Countries together with Bitcoin data. Collected the information about Daily Confirmed and Daily Deaths.
-
-There are 19 variables in the tables
-## for 2022From previous code
-
-```{r setup, include=FALSE}
-TestRun %>%
-  #filter(Country_Region) %>%
-  group_by(Country_Region,Date) %>%  
-  summarise(Confirmed = sum(Confirmed),
-            Incident_Rate = mean(Incident_Rate),
-            Deaths = sum(Deaths),
-            #### Calculating the rate to start at Jan 1st- May 29. 2020
-            ### for the missing rows not calculating 
-            Fatality_Ratio = sum(Deaths) / sum(Confirmed * 100)) %>%
-  full_join(.,btcData) %>% filter(!is.na(Confirmed)) %>%
-  mutate(time = Date - mdy("01/21/2020"),
-         month = month(Date),
-         year = year(Date),
-         week = week(Date),
-         dailyConfirmed = if_else(Date == mdy("01/22/2022"),Confirmed,Confirmed - lag(Confirmed)),
-         dailyDeaths = if_else(Date == mdy("01/22/2022"),Deaths,Deaths - lag(Deaths)))-> FullCountry
-```
 
 ## R Markdown
 
-### Group AVG by Country_Region, Year, Week
-##### Group the AVG by WEEK & YEAR.. Countries are NOT used.. Run to see by 
-##### training data 2020-2021
-
-```{r cars}
-##### training data 2020-2021
-#####test data 2022
-ThreeWeek <- FullCountry %>%
-  dplyr::group_by(year,week)%>%
-  dplyr::summarize(DeathRate = mean(Deaths),
-                   ConfirmedRate = mean(Confirmed),
-                   CloseRate = mean(Close),
-                   Incident_Rate = mean(Incident_Rate)) %>%
-  
-  ### Ungroup to create W_S as a time series to count the rows  
-  ungroup() %>%
-  mutate(week_squence = seq(1,n()))
-```
 
 ## Including Plots
 
